@@ -62,41 +62,46 @@ class LinearRegression:
 
     def optimize(self, x_train, y_train):
         if self._b0 is not None and self._b1 is not None:
+            print(self._b0)
+            print(self._b1)
+
+            print(self.calc_err(x_train, y_train, 1e-6))
             # start - 0.9 of computed values
-            step_b0 = self._b0 / 100
-            step_b1 = self._b1 / 100
+            step_b0 = abs(self._b0) / 1000
+            step_b1 = abs(self._b1) / 1000
 
-            self._b0 -= 10 * step_b0
-            self._b1 -= 10 * step_b1
+            start_b0 = self._b0 - 10 * step_b0
+            start_b1 = self._b1 - 10 * step_b1
+            stop_b0 = self._b0 + 10 * step_b0
+            stop_b1 = self._b1 + 10 * step_b1
 
-            old_err = 1e6
             lamb = 1e-6
-            err = self.calc_err(x_train, y_train, lamb)
 
-            eps = 1e-6
-            while old_err - err > eps:
-                self._b1 += step_b1
-                old_err = err
-                err = self.calc_err(x_train, y_train, lamb)
-            self._b1 -= step_b1
+            err = []
+            for koef in range(int((stop_b0 - start_b0)/(step_b0*10))):
+                self._b0 = start_b0 + koef * (step_b0/10)
+                err.append(self.calc_err(x_train, y_train, lamb))
+            self._b0 = err.index(min(err)) * (step_b0/10) + start_b0
 
-            eps /= 1e3
-            while old_err - err > eps:
-                self._b0 += step_b0
-                old_err = err
-                err = self.calc_err(x_train, y_train, lamb)
-            self._b0 -= step_b0
-            print('mse: ', err)
+            err = []
+            for koef in range(int((stop_b1 - start_b1)/(step_b1*10))):
+                self._b1 = start_b1 + koef * (step_b1/10)
+                err.append(self.calc_err(x_train, y_train, lamb))
+            self._b1 = err.index(min(err)) * (step_b1/10) + start_b1
+
+            print('b0: ', self._b0)
+            print('b1: ', self._b1)
+            print('mse: ', self.calc_err(x_train, y_train, lamb))
 
 
 if __name__ == "__main__":
     # Create elements for learning
     X = 4 * np.random.rand(1000, 1)
-    Y = 2 - 3 * X + np.random.randn(1000, 1)
+    Y = 2 + 3 * X + np.random.randn(1000, 1)
 
     # Create elements for testing
     X_test = 4 + 4 * np.random.rand(1000, 1)
-    Y_test = 2 - 3 * X_test + np.random.randn(1000, 1)
+    Y_test = 2 + 3 * X_test + np.random.randn(1000, 1)
 
     # Fit regression
     lr1 = LinearRegression()
