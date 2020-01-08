@@ -1,5 +1,6 @@
 import csv
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def csv_reader(file_obj):
@@ -30,14 +31,21 @@ def variance(values, mean):
     return sum([(x-mean)**2 for x in values])
 
 
+def rmse(y, y_pred):
+    return (np.sum((y_pred - y) ** 2) / float(len(y)))**0.5
+
+
 class LinearRegression:
     def __init__(self):
         self._b0, self._b1 = None, None
 
     def fit(self, x_train, y_train):
         x_mean, y_mean = mean(x_train), mean(y_train)
-        self._b1 = covariance(x_train, x_mean, y, y_mean) / variance(x_train, x_mean)
+        self._b1 = covariance(x_train, x_mean, y_train, y_mean) / variance(x_train, x_mean)
         self._b0 = y_mean - self._b1 * x_mean
+
+    def get_params(self):
+        return self._b0, self._b1
 
     def predict(self, x_pred):
         if self._b0 is not None and self._b1 is not None:
@@ -48,25 +56,29 @@ class LinearRegression:
 
 
 if __name__ == "__main__":
-    csv_path = "data.csv"
-    # x1, x2, y = [], [], []
-    with open(csv_path, "r") as f_obj:
-        x1, x2, y = csv_reader(f_obj)
+    # Create elements for learning
+    X = 4 * np.random.rand(1000, 1)
+    Y = 2 + 3 * X + np.random.randn(1000, 1)
 
+    # Create elements for testing
+    X_test = 4 + 4 * np.random.rand(1000, 1)
+    Y_test = 2 + 3 * X_test + np.random.randn(1000, 1)
+
+    # Fit regression
     lr1 = LinearRegression()
-    lr1.fit(x1, y)
-    xp1 = [min(x1), max(x1)]
+    lr1.fit(X, Y)
+
+    # Draw main trend
+    xp1 = [min(X), max(X)]
     yp1 = lr1.predict(xp1)
+    plt.scatter(X, Y, c='red')
+    plt.scatter(X_test, Y_test)
 
-    lr2 = LinearRegression()
-    lr2.fit(x2, y)
-    xp2 = [min(x2), max(x2)]
-    yp2 = lr2.predict(xp2)
+    # Use regression
+    Y_pred = lr1.predict(X_test)
 
-    plt.scatter(x1, y, edgecolors='red')
-    plt.scatter(x2, y)
-
+    # Calculate RMSE
+    print('rmse: ', rmse(Y_test, Y_pred))
     plt.plot(xp1, yp1)
-    plt.plot(xp2, yp2)
 
     plt.show()
